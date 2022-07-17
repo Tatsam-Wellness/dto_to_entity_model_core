@@ -6,7 +6,7 @@ import '{{ entityFileName }}';
 class {{ modelName }} extends DataModel<{{ entityName }}> {
   {{ generatedFields }}
 
-  {{ generatedLogger }}
+  final _logger = getLogger({{ modelName }});
 
   @override
   {{ entityName }} toDomain() {
