@@ -1,16 +1,12 @@
-// For UI usage only
+import 'package:dto_to_entity_model_core/src/entity_template_filler.dart';
+import 'package:dto_to_entity_model_core/src/model_template_filler.dart';
+
 class Generated {
-  final String inputDTO;
-  final String entity;
-  final String model;
+  final EntityTemplateFiller entityTemplateFiller;
+  final ModelTemplateFiller modelTemplateFiller;
 
   Generated({
-    required this.inputDTO,
-    required this.entity,
-    required this.model,
+    required this.entityTemplateFiller,
+    required this.modelTemplateFiller,
   });
-
-  @override
-  String toString() =>
-      'EntityModelViewmodel(inputDTO: $inputDTO, entity: $entity, model: $model)';
 }
