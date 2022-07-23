@@ -10,7 +10,7 @@ class {{ modelName }} extends DataModel<{{ entityName }}> {
 
   @override
   {{ entityName }} toDomain() {
-      {{ genaratedToDomain }}
+      {{ generatedToDomain }}
   }
 
   @override
