@@ -21,7 +21,7 @@ class ModelTemplateFiller {
     required this.generatedFromJson,
   });
 
-  Future<File> getGeneratedFile() async {
+  Future<File> getGeneratedFile(String saveLocation) async {
     var templateStr = await File('template/model_template').readAsString();
 
     templateStr = templateStr.replaceAll('{{ modelName }}', modelName);
@@ -39,7 +39,6 @@ class ModelTemplateFiller {
     templateStr = templateStr.replaceAll(
         '{{ generatedFromJson }}', generatedFromJson.join('\n'));
 
-    return await File('generated/${modelName.toLowerCase()}.dart')
-        .writeAsString(templateStr);
+    return await File(saveLocation).writeAsString(templateStr);
   }
 }

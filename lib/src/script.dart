@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import 'package:dto_to_entity_model_core/src/entity_template_filler.dart';
+import 'package:dto_to_entity_model_core/src/generated.dart';
 import 'package:dto_to_entity_model_core/src/model_template_filler.dart';
 
-const _outputDir = '_generated/';
 const _inputArgNames = ['--input', '-i'];
 // const _dartPrimitives = ['int','double','String','bool'];
 
@@ -30,13 +31,21 @@ class DTOToEntityModelCore {
   /// And Saves in [_outputDir]
   /// Internally used by command line entrypoint
   Future<void> _processInputFile(File input) async {
-    await (parseFile(await input.readAsString())).getGeneratedFile();
-    // await _saveFile(_entityFileName, _generated.entity);
-    // await _saveFile(_modelFileName, _generated.model);
+    // Parse
+    final result = parseFile(await input.readAsString());
+
+    // Save
+    final entitySaveLocation =
+        'generated/${result.entityTemplateFiller.entityName.toLowerCase()}.dart';
+    final modelSaveLocation =
+        'generated/${result.modelTemplateFiller.modelName.toLowerCase()}.dart';
+
+    await result.entityTemplateFiller.getGeneratedFile(entitySaveLocation);
+    await result.modelTemplateFiller.getGeneratedFile(modelSaveLocation);
   }
 
   /// App's UI directly uses it as engine for conversion
-  ModelTemplateFiller parseFile(String dtoStr) {
+  Generated parseFile(String dtoStr) {
     final contents = dtoStr.split('%% class');
     final classBody = contents[1].split('\n');
 
@@ -57,35 +66,46 @@ class DTOToEntityModelCore {
         .replaceAll("long", "int")
         .split('\n');
 
-    /// Entity generation
-    final _entity = _generateEntity(entityName, dartClassFields);
+    final entityFiller = EntityTemplateFiller(
+      entityName: entityName,
+      fields: dartClassFields,
+      constructorFields: _generateConstructor(entityName, dartClassFields),
+      equality: _generateEquality(entityName, dartClassFields),
+      generatedHashCode: _generateHashCode(dartClassFields),
+      toStr: _generateToString(entityName, dartClassFields),
+    );
 
-    /// Model generation
-    final _model =
-        _generateModel(entityName, _entityFileName, modelName, dartClassFields);
-
-    return ModelTemplateFiller(
+    final modelFiller = ModelTemplateFiller(
       entityName: entityName,
       modelName: modelName,
       entityFileName: _entityFileName,
-      generatedFields: _convertToModelFields(dartClassFields),
-      generatedToDomain:
-          _generateToDomain(entityName, modelName, dartClassFields),
-      generatedToJson: _generateToJson(dartClassFields),
-      generatedFromDomain:
-          _generateFromDomain(entityName, modelName, dartClassFields),
-      generatedFromJson:
-          _generateFromJson(entityName, modelName, dartClassFields),
+      generatedFields: _convertToModelFields(
+        dartClassFields,
+      ),
+      generatedToDomain: _generateToDomain(
+        entityName,
+        modelName,
+        dartClassFields,
+      ),
+      generatedToJson: _generateToJson(
+        dartClassFields,
+      ),
+      generatedFromDomain: _generateFromDomain(
+        entityName,
+        modelName,
+        dartClassFields,
+      ),
+      generatedFromJson: _generateFromJson(
+        entityName,
+        modelName,
+        dartClassFields,
+      ),
     );
-  }
 
-  List<String> _generateModel(
-    String entityName,
-    String entityFileName,
-    String modelName,
-    List<String> fields,
-  ) {
-    return ['}'];
+    return Generated(
+      entityTemplateFiller: entityFiller,
+      modelTemplateFiller: modelFiller,
+    );
   }
 
   List<String> _generateFromJson(
@@ -204,36 +224,18 @@ class DTOToEntityModelCore {
     return _modelFields;
   }
 
-  String _generateEntity(String entityName, List<String> fields) {
-    return [
-      "import 'package:tatsam_app_experimental/features/view-all-content/domain/entities/entity.dart';",
-      '\n',
-      'class $entityName extends Entity {',
-      ...fields,
-      '\n',
-      _generateConstructor(entityName, fields),
-      '\n',
-      _generateToString(entityName, fields),
-      '\n',
-      _generateHashCode(fields),
-      '\n',
-      _generateEquality(entityName, fields),
-      '}'
-    ].join('\n');
-  }
-
-  String _generateConstructor(String className, List<String> fields) {
-    final List<String> _constructerFields = [];
+  List<String> _generateConstructor(String className, List<String> fields) {
+    final List<String> _constructerFields = <String>[];
     for (int i = 0; i < fields.length; i++) {
       final line = fields[i].trim().split(' ');
       final fieldName = line[2].replaceAll(';', ',');
       _constructerFields.add("required this.$fieldName");
     }
 
-    return ["$className({", ..._constructerFields, "});"].join('\n');
+    return _constructerFields;
   }
 
-  String _generateToString(String className, List<String> fields) {
+  List<String> _generateToString(String className, List<String> fields) {
     final List<String> _stringifiedFields = [];
     for (int i = 0; i < fields.length; i++) {
       final line = fields[i].trim().split(' ');
@@ -242,16 +244,14 @@ class DTOToEntityModelCore {
     }
 
     return [
-      "@override\nString toString() {\n",
-      "return '$className(",
+      "'$className(",
       ..._stringifiedFields,
-      ")';",
-      "}"
-    ].join();
+      ")'",
+    ];
   }
 
-  String _generateHashCode(List<String> fields) {
-    final List<String> _hashedFields = [];
+  List<String> _generateHashCode(List<String> fields) {
+    final List<String> _hashedFields = <String>[];
     for (int i = 0; i < fields.length; i++) {
       final lastField = i == (fields.length - 1);
       final line = fields[i].trim().split(' ');
@@ -264,16 +264,12 @@ class DTOToEntityModelCore {
     }
 
     return [
-      "@override\nint get hashCode {",
-      "return ",
       ..._hashedFields,
-      ";",
-      "}"
-    ].join();
+    ];
   }
 
-  String _generateEquality(String className, List<String> fields) {
-    final List<String> _equalizedFields = [];
+  List<String> _generateEquality(String className, List<String> fields) {
+    final List<String> _equalizedFields = <String>[];
     for (int i = 0; i < fields.length; i++) {
       final lastField = i == (fields.length - 1);
       final line = fields[i].trim().split(' ');
@@ -286,17 +282,10 @@ class DTOToEntityModelCore {
     }
 
     return [
-      "@override\nbool operator ==(Object other) {\nif (identical(this, other)) return true;\n",
+      "if (identical(this, other)) return true;\n",
       "return other is $className &&",
       ..._equalizedFields,
       ";",
-      "}"
-    ].join();
-  }
-
-  Future<void> _saveFile(String fileName, String contents) async {
-    final outputPath = "$_outputDir$fileName";
-    final file = File(outputPath);
-    await file.writeAsString(contents);
+    ];
   }
 }
