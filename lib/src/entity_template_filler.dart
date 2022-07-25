@@ -17,9 +17,14 @@ class EntityTemplateFiller {
     required this.toStr,
   });
 
-  Future<File> getGeneratedFile(String saveLocation) async {
-    var templateStr = await File('template/entity_template').readAsString();
+  Future<File> generateFile(String saveLocation) async {
+    final _generatedEntityStr = await generateEntity();
 
+    return await File(saveLocation).writeAsString(_generatedEntityStr);
+  }
+
+  Future<String> generateEntity() async {
+    var templateStr = await File('template/entity_template').readAsString();
     templateStr = templateStr.replaceAll('{{ entityName }}', entityName);
     templateStr = templateStr.replaceAll('{{ fields }}', fields.join('\n'));
     templateStr = templateStr.replaceAll(
@@ -29,6 +34,6 @@ class EntityTemplateFiller {
         templateStr.replaceAll('{{ hashCode }}', generatedHashCode.join('\n'));
     templateStr = templateStr.replaceAll('{{ toStr }}', toStr.join(''));
 
-    return await File(saveLocation).writeAsString(templateStr);
+    return templateStr;
   }
 }
