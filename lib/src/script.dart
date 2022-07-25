@@ -40,8 +40,8 @@ class DTOToEntityModelCore {
     final modelSaveLocation =
         'generated/${result.modelTemplateFiller.modelName.toLowerCase()}.dart';
 
-    await result.entityTemplateFiller.getGeneratedFile(entitySaveLocation);
-    await result.modelTemplateFiller.getGeneratedFile(modelSaveLocation);
+    await result.entityTemplateFiller.generateFile(entitySaveLocation);
+    await result.modelTemplateFiller.generateFile(modelSaveLocation);
   }
 
   /// App's UI directly uses it as engine for conversion
