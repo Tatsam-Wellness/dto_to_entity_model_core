@@ -1,3 +1,4 @@
+const entityTemplate = '''
 import 'package:tatsam_app_experimental/features/view-all-content/domain/entities/entity.dart';
 
 class {{ entityName }} extends Entity {
@@ -19,3 +20,4 @@ class {{ entityName }} extends Entity {
   @override
   int get hashCode => {{ hashCode }};
 }
+''';

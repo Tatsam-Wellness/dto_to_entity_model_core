@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:dto_to_entity_model_core/src/template/entity_template.dart';
+
 class EntityTemplateFiller {
   final String entityName;
   final List<String> fields;
@@ -18,13 +20,13 @@ class EntityTemplateFiller {
   });
 
   Future<File> generateFile(String saveLocation) async {
-    final _generatedEntityStr = await generateEntity();
+    final _generatedEntityStr = generateEntity();
 
     return await File(saveLocation).writeAsString(_generatedEntityStr);
   }
 
-  Future<String> generateEntity() async {
-    var templateStr = await File('template/entity_template').readAsString();
+  String generateEntity() {
+    var templateStr = entityTemplate;
     templateStr = templateStr.replaceAll('{{ entityName }}', entityName);
     templateStr = templateStr.replaceAll('{{ fields }}', fields.join('\n'));
     templateStr = templateStr.replaceAll(
