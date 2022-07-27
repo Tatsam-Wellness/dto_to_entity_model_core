@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:dto_to_entity_model_core/src/template/model_template.dart';
+
 class ModelTemplateFiller {
   final String entityName;
   final String entityFileName;
@@ -22,13 +24,13 @@ class ModelTemplateFiller {
   });
 
   Future<File> generateFile(String saveLocation) async {
-    final _generatedModelStr = await generateModel();
+    final _generatedModelStr = generateModel();
 
     return await File(saveLocation).writeAsString(_generatedModelStr);
   }
 
-  Future<String> generateModel() async {
-    var templateStr = await File('template/model_template').readAsString();
+  String generateModel() {
+    var templateStr = modelTemplate;
 
     templateStr = templateStr.replaceAll('{{ modelName }}', modelName);
     templateStr = templateStr.replaceAll('{{ entityName }}', entityName);

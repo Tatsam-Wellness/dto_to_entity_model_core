@@ -1,3 +1,4 @@
+const modelTemplate = '''
 import 'package:tatsam_app_experimental/core/logger/logger.dart';
 import 'package:tatsam_app_experimental/core/utils/helper_functions/check_if_null.dart';
 import 'package:tatsam_app_experimental/features/view-all-content/data/models/data-model.dart';
@@ -24,3 +25,4 @@ class {{ modelName }} extends DataModel<{{ entityName }}> {
 
   {{ generatedFromJson }}
 }
+''';
