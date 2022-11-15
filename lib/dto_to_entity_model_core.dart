@@ -1,3 +1,3 @@
 library dto_to_entity_model_core;
 
-export 'src/script.dart';
+export 'src/java_converter.dart';
