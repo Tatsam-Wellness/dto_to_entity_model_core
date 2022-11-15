@@ -1,0 +1,1 @@
+const inputArgNames = ['--input', '-i'];

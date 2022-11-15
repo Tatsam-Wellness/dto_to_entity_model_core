@@ -1,36 +1,36 @@
 import 'dart:io';
 
+import 'package:dto_to_entity_model_core/src/commons.dart';
+import 'package:dto_to_entity_model_core/src/converter_facade.dart';
 import 'package:dto_to_entity_model_core/src/entity_template_filler.dart';
 import 'package:dto_to_entity_model_core/src/generated.dart';
 import 'package:dto_to_entity_model_core/src/model_template_filler.dart';
 
-const _inputArgNames = ['--input', '-i'];
-// const _dartPrimitives = ['int','double','String','bool'];
 
-class DTOToEntityModelCore {
-  /// --input = "filename"
-  /// For command line usage
+class JavaConverter implements CoverterFacade {
+  @override
+  String get lang => "java";
+
+  @override
   Future<void> execute(List<String> args) async {
     assert(args.isNotEmpty);
 
     final inputFileArg = args.first.split('=');
     final inputFileSupplied =
-        _inputArgNames.contains(inputFileArg.first.trim()) &&
+        inputArgNames.contains(inputFileArg.first.trim()) &&
             inputFileArg[1].isNotEmpty;
     if (inputFileSupplied) {
       final inputFileName = inputFileArg[1].trim();
       final inputFile = File(inputFileName);
-      await _processInputFile(inputFile);
+      await processInputFile(inputFile);
     } else {
       throw Exception(
           'Please use --input or -i to supply a valid input JAVA DTO file');
     }
   }
 
-  /// Converts the given DTO file to App's Entity and Model
-  /// And Saves in [_outputDir]
-  /// Internally used by command line entrypoint
-  Future<void> _processInputFile(File input) async {
+  @override
+  Future<void> processInputFile(File input) async {
     // Parse
     final result = parseFile(await input.readAsString());
 
@@ -44,7 +44,7 @@ class DTOToEntityModelCore {
     await result.modelTemplateFiller.generateFile(modelSaveLocation);
   }
 
-  /// App's UI directly uses it as engine for conversion
+  @override
   Generated parseFile(String dtoStr) {
     final contents = dtoStr.split('%% class');
     final classBody = contents[1].split('\n');
@@ -69,33 +69,33 @@ class DTOToEntityModelCore {
     final entityFiller = EntityTemplateFiller(
       entityName: entityName,
       fields: dartClassFields,
-      constructorFields: _generateConstructor(entityName, dartClassFields),
-      equality: _generateEquality(entityName, dartClassFields),
-      generatedHashCode: _generateHashCode(dartClassFields),
-      toStr: _generateToString(entityName, dartClassFields),
+      constructorFields: generateConstructor(entityName, dartClassFields),
+      equality: generateEquality(entityName, dartClassFields),
+      generatedHashCode: generateHashCode(dartClassFields),
+      toStr: generateToString(entityName, dartClassFields),
     );
 
     final modelFiller = ModelTemplateFiller(
       entityName: entityName,
       modelName: modelName,
       entityFileName: _entityFileName,
-      generatedFields: _convertToModelFields(
+      generatedFields: convertToModelFields(
         dartClassFields,
       ),
-      generatedToDomain: _generateToDomain(
+      generatedToDomain: generateToDomain(
         entityName,
         modelName,
         dartClassFields,
       ),
-      generatedToJson: _generateToJson(
+      generatedToJson: generateToJson(
         dartClassFields,
       ),
-      generatedFromDomain: _generateFromDomain(
+      generatedFromDomain: generateFromDomain(
         entityName,
         modelName,
         dartClassFields,
       ),
-      generatedFromJson: _generateFromJson(
+      generatedFromJson: generateFromJson(
         entityName,
         modelName,
         dartClassFields,
@@ -108,7 +108,8 @@ class DTOToEntityModelCore {
     );
   }
 
-  List<String> _generateFromJson(
+  @override
+  List<String> generateFromJson(
     String entityName,
     String modelName,
     List<String> fields,
@@ -138,7 +139,8 @@ class DTOToEntityModelCore {
     return _fromJsonLines;
   }
 
-  List<String> _generateFromDomain(
+  @override
+  List<String> generateFromDomain(
     String entityName,
     String modelName,
     List<String> fields,
@@ -166,7 +168,8 @@ class DTOToEntityModelCore {
     return _fromDomainLines;
   }
 
-  List<String> _generateToJson(
+  @override
+  List<String> generateToJson(
     List<String> fields,
   ) {
     final _toJsonLines = <String>[];
@@ -181,7 +184,8 @@ class DTOToEntityModelCore {
     return _toJsonLines;
   }
 
-  List<String> _generateToDomain(
+  @override
+  List<String> generateToDomain(
     String entityName,
     String modelName,
     List<String> fields,
@@ -209,7 +213,8 @@ class DTOToEntityModelCore {
     return _toDomainLines;
   }
 
-  List<String> _convertToModelFields(List<String> fields) {
+  @override
+  List<String> convertToModelFields(List<String> fields) {
     final List<String> _modelFields = [];
 
     for (int i = 0; i < fields.length; i++) {
@@ -224,7 +229,8 @@ class DTOToEntityModelCore {
     return _modelFields;
   }
 
-  List<String> _generateConstructor(String className, List<String> fields) {
+  @override
+  List<String> generateConstructor(String className, List<String> fields) {
     final List<String> _constructerFields = <String>[];
     for (int i = 0; i < fields.length; i++) {
       final line = fields[i].trim().split(' ');
@@ -235,7 +241,8 @@ class DTOToEntityModelCore {
     return _constructerFields;
   }
 
-  List<String> _generateToString(String className, List<String> fields) {
+  @override
+  List<String> generateToString(String className, List<String> fields) {
     final List<String> _stringifiedFields = [];
     for (int i = 0; i < fields.length; i++) {
       final line = fields[i].trim().split(' ');
@@ -250,7 +257,8 @@ class DTOToEntityModelCore {
     ];
   }
 
-  List<String> _generateHashCode(List<String> fields) {
+  @override
+  List<String> generateHashCode(List<String> fields) {
     final List<String> _hashedFields = <String>[];
     for (int i = 0; i < fields.length; i++) {
       final lastField = i == (fields.length - 1);
@@ -268,7 +276,8 @@ class DTOToEntityModelCore {
     ];
   }
 
-  List<String> _generateEquality(String className, List<String> fields) {
+    @override
+  List<String> generateEquality(String className, List<String> fields) {
     final List<String> _equalizedFields = <String>[];
     for (int i = 0; i < fields.length; i++) {
       final lastField = i == (fields.length - 1);
@@ -288,4 +297,6 @@ class DTOToEntityModelCore {
       ";",
     ];
   }
+  
+
 }
