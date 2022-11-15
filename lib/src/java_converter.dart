@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:dto_to_entity_model_core/src/constants.dart';
+import 'package:dto_to_entity_model_core/src/commons.dart';
 import 'package:dto_to_entity_model_core/src/converter_facade.dart';
 import 'package:dto_to_entity_model_core/src/entity_template_filler.dart';
 import 'package:dto_to_entity_model_core/src/generated.dart';
@@ -8,6 +8,9 @@ import 'package:dto_to_entity_model_core/src/model_template_filler.dart';
 
 
 class JavaConverter implements CoverterFacade {
+  @override
+  String get lang => "java";
+
   @override
   Future<void> execute(List<String> args) async {
     assert(args.isNotEmpty);
@@ -294,4 +297,6 @@ class JavaConverter implements CoverterFacade {
       ";",
     ];
   }
+  
+
 }

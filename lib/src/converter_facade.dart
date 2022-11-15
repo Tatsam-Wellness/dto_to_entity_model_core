@@ -1,8 +1,26 @@
 import 'dart:io';
 
+import 'package:dto_to_entity_model_core/dto_to_entity_model_core.dart';
 import 'package:dto_to_entity_model_core/src/generated.dart';
 
+final supportedConverters = <CoverterFacade>[
+  JavaConverter(),
+];
+
 abstract class CoverterFacade {
+ factory CoverterFacade.fromLang(String lang) {
+    for(final converter in supportedConverters) {
+      if(converter.lang.toLowerCase() == lang) {
+        return converter;
+      }
+    }
+
+    throw UnsupportedError("Converter for $lang is not supported yet!");
+  }
+
+  /// Name of language from which you are comverting to dart
+  /// e.g: java, typescript, etc
+  String get lang;
   /// --input = "filename"
   /// For command line usage
   Future<void> execute(List<String> args);
